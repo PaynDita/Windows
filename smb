@@ -2,5 +2,7 @@ nmap -p 445 — script=smb-enum-shares.nse,smb-enum-users.nse $ip
 
 nmap -p 445 --script smb-protocals $ip - to identify smb status
 
+nmap -p 445 --script smb-os-discovery $ip  - to identify the version of DataCenter
+
 nmap -p 111 — script=nfs-ls,nfs-statfs,nfs-showmount $ip
 
