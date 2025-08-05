@@ -1,1 +1,14 @@
+To lists out services with unquoted paths containing spaces.
 
+Get-WmiObject Win32_Service | Where-Object {
+    $_.PathName -like '* *' -and $_.PathName -notlike '"*"' 
+} | Select-Object Name, StartMode, State, PathName | Format-Table -AutoSize 
+
+if found any to fix it:
+
+sc config "SomeService" binPath= "\"C:\Program Files\Some Service\service.exe\""
+
+
+sc qc <ServiceName>	Show service configuration info
+sc start <ServiceName>	Start the service
+sc stop <ServiceName>	Stop the service
