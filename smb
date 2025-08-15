@@ -6,3 +6,4 @@ nmap -p 445 --script smb-os-discovery $ip  - to identify the version of DataCent
 
 nmap -p 111 — script=nfs-ls,nfs-statfs,nfs-showmount $ip
 
+nmap -p 139,445 --script smb-vuln-ms17-010$ip - to identify eternalblue
