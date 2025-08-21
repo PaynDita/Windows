@@ -1,0 +1,27 @@
+To install Kerbrute
+
+https://github.com/ropnop/kerbrute/releases/tag/v1.0.3
+
+alternatively:
+
+sudo apt update && sudo apt install -y golang-go git && \
+cd /tmp && \
+git clone https://github.com/ropnop/kerbrute.git && \
+cd kerbrute && \
+go build -o kerbrute && \
+sudo mv kerbrute /usr/local/bin/ && \
+sudo chmod +x /usr/local/bin/kerbrute && \
+kerbrute --help
+
+note: if any task popup during running above script kill that task eg. kill -9 taskID
+
+--------------------------------------------------------------------------------------------
+
+
+
+#./kerbrute userenum -d domainname --dc ipaddress user.txt
+
+------------------------------------------------------------
+Alternatively: with Nmap But very slow
+
+nmap -p88 --script=krb5-enum-users --script-args="krb5-enum-users.realm='SPOOKYSEC.LOCAL',userdb=userlist" 10.201.22.141
