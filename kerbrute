@@ -1,3 +1,73 @@
+
+kerbrute userenum -d domain.local usernames.txt --dc 192.168.1.1                   (username enumration)
+
+kerbrute asreproast -d domain.local usernames.txt --dc 192.168.1.1                 (AS_REP Roasting)
+
+kerbrute passwordspray -d domain.local --dc 192.168.1.1 usernames.txt passwords.txt  (Password brute forcing)
+
+
+
+
+
+kerbrute is a Go-based tool developed by ropnop for Kerberos pre-authentication enumeration and brute-forcing usernames and passwords in Active Directory environments. It operates over Kerberos and is very fast due to its concurrency model.
+
+🎯 Use Cases of kerbrute
+Feature	Purpose
+✅ Username enumeration	Find valid domain usernames without authentication
+✅ Password brute-forcing	Try passwords for valid usernames using Kerberos (online attack)
+✅ AS-REP Roasting	Enumerate users with DONT_REQ_PREAUTH and dump AS-REP hashes
+🔍 How kerbrute Differs from GetNPUsers.py / GetUserSPNs.py
+Tool	Main Use Case	Auth Required?	SPN Enumeration?	AS-REP Roasting?	Brute-force Passwords?	Speed/Concurrency
+kerbrute	User enum, brute-force, AS-REP	❌ / ✅	❌	✅	✅	✅ Very Fast
+GetNPUsers.py	AS-REP Roasting	❌	❌	✅	❌	❌ Single-threaded
+GetUserSPNs.py	Kerberoasting	✅	✅	❌	❌	❌ Single-threaded
+✅ 1. Username Enumeration
+
+kerbrute can detect valid usernames by observing differences in the Kerberos error messages (e.g., KDC_ERR_C_PRINCIPAL_UNKNOWN vs. KDC_ERR_PREAUTH_REQUIRED).
+
+This is unauthenticated and stealthy compared to LDAP enumeration.
+
+Example:
+
+kerbrute userenum -d domain.local usernames.txt --dc 192.168.1.1
+
+✅ 2. AS-REP Roasting
+
+Similar to GetNPUsers.py, kerbrute can check for accounts without pre-auth and dump their AS-REP responses for offline cracking.
+
+Example:
+
+kerbrute asreproast -d domain.local usernames.txt --dc 192.168.1.1
+
+✅ 3. Password Brute-Forcing
+
+kerbrute can perform Kerberos online brute-force attacks (not possible with GetNPUsers or GetUserSPNs).
+
+Works like a Kerberos-aware password spray tool.
+
+Example:
+
+kerbrute passwordspray -d domain.local --dc 192.168.1.1 usernames.txt passwords.txt
+
+🧠 Summary: When to Use What?
+Scenario	Recommended Tool
+Fast username enumeration	kerbrute userenum
+Check for AS-REP roastable users	kerbrute asreproast or GetNPUsers.py
+Brute-force user credentials	kerbrute passwordspray
+Find SPN accounts for roasting	GetUserSPNs.py
+Offline cracking of TGT/TGS	hashcat, john
+🔥 Real-World Example Flow
+
+🎯 Use kerbrute to enumerate valid users.
+
+🔥 AS-REP Roasting with kerbrute or GetNPUsers.py on found users.
+
+🧪 Try Kerberoasting with GetUserSPNs.py (needs creds).
+
+💥 Crack hashes offline with hashcat.
+
+
+-----------------------------------------------------------------------
 To install Kerbrute
 
 https://github.com/ropnop/kerbrute/releases/tag/v1.0.3
