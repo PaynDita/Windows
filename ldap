@@ -1,0 +1,117 @@
+
+ Anonymous Bind (if allowed):
+ldapsearch -x -H ldap://10.0.0.5 -b "dc=corp,dc=local"
+
+----------------------------------------------------------------------
+
+🔥 Real-World Example Flow
+
+🔍 Use ldapsearch to dump all users:
+
+ldapsearch -x -H ldap://10.0.0.5 -b "dc=corp,dc=local" "(objectClass=user)" sAMAccountName
+
+-----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+LDAP enumeration is the process of querying an Active Directory (AD) server (usually a Domain Controller) over LDAP (Lightweight Directory Access Protocol) to gather information such as:
+
+Valid usernames
+
+Groups and memberships
+
+Password policies
+
+SPNs (Service Principal Names)
+
+Email addresses
+
+Computer names
+
+Organizational Units (OUs)
+
+⚠️ Often possible without authentication if LDAP is misconfigured (anonymous bind), or with low-privilege creds.
+
+📚 Why Use LDAP Enumeration?
+
+It gives attackers a goldmine of data to:
+
+Build a list of valid users
+
+Find high-value targets (e.g., svc_accounts, Domain Admins)
+
+Identify accounts vulnerable to AS-REP Roasting or Kerberoasting
+
+Map the AD structure (OUs, trust relationships)
+
+⚔️ Example: LDAP Enumeration using ldapsearch
+
+Let’s say the target domain is corp.local, and the DC is at 10.0.0.5.
+
+✅ Anonymous Bind (if allowed):
+ldapsearch -x -H ldap://10.0.0.5 -b "dc=corp,dc=local"
+
+
+This tries to connect without any credentials and lists directory info.
+
+If it works, you’ll see entries like:
+
+dn: CN=John Smith,CN=Users,DC=corp,DC=local
+sAMAccountName: jsmith
+userPrincipalName: jsmith@corp.local
+
+🔐 Authenticated Bind:
+
+If anonymous bind is disabled (default in newer domains), use low-priv creds:
+
+ldapsearch -x -H ldap://10.0.0.5 -D "corp\\lowprivuser" -w password -b "dc=corp,dc=local"
+
+💡 What You Can Enumerate via LDAP
+Info Type	LDAP Attribute
+Usernames	sAMAccountName
+Display Name	displayName
+Email	mail
+Group Memberships	memberOf
+Description (often contains passwords 😬)	description
+SPNs	servicePrincipalName
+Last logon	lastLogonTimestamp
+Password policy	Domain attributes
+🆚 How LDAP Enum Differs from Kerbrute
+Feature	LDAP Enumeration	Kerbrute
+Protocol	LDAP	Kerberos
+Can find SPNs?	✅ Yes	❌ No
+Can find usernames?	✅ Yes	✅ Yes (via Kerberos error messages)
+Requires creds?	❌ Sometimes (anon bind works)	❌ (for enum / AS-REP)
+Can brute-force creds?	❌ No	✅ Yes (password spray)
+Stealth level	🔸 Moderate	✅ High (no LDAP logs)
+🔥 Real-World Example Flow
+
+🔍 Use ldapsearch to dump all users:
+
+ldapsearch -x -H ldap://10.0.0.5 -b "dc=corp,dc=local" "(objectClass=user)" sAMAccountName
+
+
+📄 Save results to users.txt.
+
+🎯 Use with GetNPUsers.py or kerbrute to check for AS-REP roasting:
+
+python3 GetNPUsers.py corp.local/ -usersfile users.txt -dc-ip 10.0.0.5 -no-pass
+
+🛡️ Defender Tip
+
+To harden LDAP:
+
+Disable anonymous binds.
+
+Restrict LDAP access via firewalls.
+
+Enable LDAP signing.
+
+Use LDAPS (encrypted).
+
+Monitor for excessive enumeration.
