@@ -6,6 +6,19 @@ kerbrute asreproast -d domain.local usernames.txt --dc 192.168.1.1              
 kerbrute passwordspray -d domain.local --dc 192.168.1.1 usernames.txt passwords.txt  (Password brute forcing)
 
 
+------------------------------------------------------------------------------------------------------------------
+
+🔥 Real-World Example Flow
+
+🎯 Use kerbrute to enumerate valid users.
+
+🔥 AS-REP Roasting with kerbrute or GetNPUsers.py on found users.
+
+🧪 Try Kerberoasting with GetUserSPNs.py (needs creds).
+
+💥 Crack hashes offline with hashcat.
+
+-----------------------------------------------------------------------
 
 
 
@@ -56,18 +69,12 @@ Check for AS-REP roastable users	kerbrute asreproast or GetNPUsers.py
 Brute-force user credentials	kerbrute passwordspray
 Find SPN accounts for roasting	GetUserSPNs.py
 Offline cracking of TGT/TGS	hashcat, john
-🔥 Real-World Example Flow
 
-🎯 Use kerbrute to enumerate valid users.
 
-🔥 AS-REP Roasting with kerbrute or GetNPUsers.py on found users.
-
-🧪 Try Kerberoasting with GetUserSPNs.py (needs creds).
-
-💥 Crack hashes offline with hashcat.
 
 
 -----------------------------------------------------------------------
+
 To install Kerbrute
 
 https://github.com/ropnop/kerbrute/releases/tag/v1.0.3
