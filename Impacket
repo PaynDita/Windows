@@ -1,4 +1,13 @@
 impacket-GetNPUsers spookysec.local/svc-admin -dc-ip 10.201.30.111   
+
+
+Performs AS-REP Roasting – identifies accounts that do not require Kerberos pre-authentication, and dumps encrypted TGTs that can be brute-forced offline to recover passwords.
+
+Key Use Case:
+
+Attacking user accounts with DONT_REQ_PREAUTH flag set.
+
+Retrieves AS-REP responses from the DC which can be cracked offline (e.g., using hashcat).
 Impacket v0.12.0 - Copyright Fortra, LLC and its affiliated companies 
 
 Password:
@@ -11,6 +20,34 @@ $krb5asrep$23$svc-admin@SPOOKYSEC.LOCAL:bd4b3ef4f7baf60c5a075f58cd8d220a$a2ddbf9
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 impacket-GetUserSPNs spookysec.local/svc-admin:password -dc-ip 10.201.30.111 -request                            (This will list the SPN enabled user along with its hash)
+
+
+Performs Kerberoasting – finds user accounts with Service Principal Names (SPNs) set and requests TGS tickets, which are encrypted with the user's password hash.
+
+Key Use Case:
+
+Attacking service accounts that have SPNs associated (commonly misconfigured with weak passwords).
+
+Can be used to retrieve TGS tickets and crack them offline.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔐 TGT vs TGS in Kerberos
+
+Feature	TGT (Ticket Granting Ticket)                                                                        	TGS (Ticket Granting Service Ticket)
+
+Full Name	Ticket Granting Ticket                                                                            	Service Ticket (or Ticket Granting Service Ticket)
+
+Purpose	Proves identity to request access to services                                                        	Grants access to a specific service
+
+Issued By	Authentication Service (AS) – part of the KDC                                                      	Ticket Granting Service (TGS) – also part of the KDC
+
+Requested When	After initial login with password or hash	                                                    After obtaining a valid TGT      
+
+Used For	Requesting TGS tickets for services	                                                                Accessing services (like SMB, HTTP, MSSQL, etc.)
+
+Encrypted With	The KDC’s secret key (not user’s)                                                            	Encrypted with the target service account's password hash
+
+Attack Vector	AS-REP Roasting (if no pre-auth)	                                                              Kerberoasting (if SPN is set and password is weak)
 
 
 
