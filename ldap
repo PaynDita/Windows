@@ -4,6 +4,13 @@ ldapsearch -x -H ldap://10.0.0.5 -b "dc=corp,dc=local"
 
 ----------------------------------------------------------------------
 
+If anonymous bind is disabled (default in newer domains), use low-priv creds:
+
+ldapsearch -x -H ldap://10.0.0.5 -D "corp\\lowprivuser" -w password -b "dc=corp,dc=local"
+
+
+--------------------------------------------------------------------------
+
 🔥 Real-World Example Flow
 
 🔍 Use ldapsearch to dump all users:
