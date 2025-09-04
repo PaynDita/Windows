@@ -1,3 +1,5 @@
+*** This is unauthenticated and stealthy compared to LDAP enumeration. ***
+
 
 kerbrute userenum -d domain.local usernames.txt --dc 192.168.1.1                   (username enumration)
 
