@@ -1,5 +1,7 @@
 *** This is unauthenticated and stealthy compared to LDAP enumeration. ***
 
+Download kerbrute_linux_amd64 : https://github.com/ropnop/kerbrute/releases/tag/v1.0.3
+
 
 kerbrute userenum -d domain.local usernames.txt --dc 192.168.1.1                   (username enumration)
 
