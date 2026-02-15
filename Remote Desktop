@@ -1,1 +1,0 @@
-xfreerdp /u:user /p:password321 /cert:ignore /v:MACHINE_IP
